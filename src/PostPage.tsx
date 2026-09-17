@@ -5,8 +5,14 @@ function PostPage() {
   const { id } = useParams();
   const queryClient = useQueryClient();
 
-  const cachedPosts: any = queryClient.getQueryData(['posts']);
-  const cachedPost = cachedPosts?.find((p: any) => String(p.id) === id);
+  const postQueries = queryClient.getQueryCache().findAll({ queryKey: ['posts'] });
+  let cachedPost: any = null;
+  for (const query of postQueries) {
+    const found = (query.state.data as any)?.find((p: any) => String(p.id) === id);
+    if (found) {
+      cachedPost = found;
+    }
+  }
 
   const { data, isPending, isError } = useQuery({
     queryKey: ['post', id],

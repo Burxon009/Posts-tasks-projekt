@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { Button, IconButton, Skeleton, Dialog, DialogTitle, DialogActions, Snackbar } from '@mui/material'
+import { Button, IconButton, Skeleton, Dialog, DialogTitle, DialogActions, Snackbar, Pagination } from '@mui/material'
 import EditIcon from '@mui/icons-material/Edit'
 import AddPostModal from './AddPostModal'
 
@@ -14,10 +14,16 @@ function PostsPage() {
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarText, setSnackbarText] = useState('');
+  const [page, setPage] = useState(1);
 
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const wsRef = useRef<WebSocket | null>(null);
+  const pageRef = useRef(page);
+
+  useEffect(() => {
+    pageRef.current = page;
+  }, [page]);
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:3001');
@@ -26,7 +32,7 @@ function PostsPage() {
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === 'post') {
-        queryClient.setQueryData(['posts'], (old: any) => [data.post, ...old]);
+        queryClient.setQueryData(['posts', pageRef.current], (old: any) => [data.post, ...old]);
         setSnackbarText('Новый пост: ' + data.post.title);
         setSnackbarOpen(true);
       }
@@ -38,9 +44,9 @@ function PostsPage() {
   }, []);
 
   const { data, isPending, isError, isFetching } = useQuery({
-    queryKey: ['posts'],
+    queryKey: ['posts', page],
     queryFn: async () => {
-      const response = await fetch('https://jsonplaceholder.typicode.com/posts');
+      const response = await fetch(`https://jsonplaceholder.typicode.com/posts?_page=${page}&_limit=10`);
       return response.json();
     },
     staleTime: Infinity,
@@ -57,7 +63,7 @@ function PostsPage() {
     },
     onSuccess: (_result, newPost) => {
       const postWithId = { ...newPost, id: Date.now() };
-      queryClient.setQueryData(['posts'], (old: any) => [postWithId, ...old]);
+      queryClient.setQueryData(['posts', page], (old: any) => [postWithId, ...old]);
       wsRef.current?.send(JSON.stringify({ type: 'post', post: postWithId }));
       setOpen(false);
     },
@@ -76,7 +82,7 @@ function PostsPage() {
       return response.json();
     },
     onSuccess: (_result, updatedPost) => {
-      queryClient.setQueryData(['posts'], (old: any) =>
+      queryClient.setQueryData(['posts', page], (old: any) =>
         old.map((p: any) => (p.id === updatedPost.id ? updatedPost : p))
       );
       setOpen(false);
@@ -96,7 +102,7 @@ function PostsPage() {
     },
     onMutate: (id) => setDeletingId(id),
     onSuccess: (_result, id) => {
-      queryClient.setQueryData(['posts'], (old: any) => old.filter((p: any) => p.id !== id));
+      queryClient.setQueryData(['posts', page], (old: any) => old.filter((p: any) => p.id !== id));
     },
     onSettled: () => setDeletingId(null),
   });
@@ -177,6 +183,18 @@ function PostsPage() {
           </div>
         ))
       )}
+
+      <Pagination
+        count={10}
+        page={page}
+        onChange={(_e, value) => setPage(value)}
+        style={{ margin: '10px',}}
+          sx={{
+    '& .MuiPaginationItem-root': {
+      color: 'green',
+    },
+  }}
+      />
 
       <AddPostModal
         open={open}
