@@ -44,8 +44,9 @@ function ChatPage() {
           fullWidth
           value={input}
           onChange={(e) => setInput(e.target.value)}
+          style={{backgroundColor: 'white', borderRadius: '40px'}}
         />
-        <Button variant="contained" onClick={handleSend}>Отправить</Button>
+        <Button variant="contained" onClick={handleSend} style={{borderRadius: '40px'}}>Отправить</Button>
       </Stack>
     </Stack>
   );
