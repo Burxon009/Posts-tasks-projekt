@@ -4,17 +4,29 @@ import { Dialog, DialogTitle,  DialogContent, DialogActions, TextField, Button }
 function AddPostModal({ open, mode = 'create', initialData, loading, onClose, onSubmit }: any) {
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');
+  const [image, setImage] = useState<string | null>(null);
 
   useEffect(() => {
     if (open) {
       setTitle(initialData?.title ?? '');
       setBody(initialData?.body ?? '');
+      setImage(initialData?.image ?? null);
     }
   }, [open, initialData]);
 
+  const handleImageChange = (e: any) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImage(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmit = () => {
     if (!title || !body) return;
-    onSubmit({ title, body });
+    onSubmit({ title, body, image });
   };
 
   return (
@@ -37,8 +49,17 @@ function AddPostModal({ open, mode = 'create', initialData, loading, onClose, on
           rows={4}
           margin="normal"
         />
+        <Button component="label" variant="outlined" style={{ marginTop: '10px' }}>
+          Выбрать фото
+          <input type="file" accept="image/*" hidden onChange={handleImageChange} />
+        </Button>
+        {image && (
+          <div>
+            <img src={image} style={{ maxWidth: '200px', marginTop: '10px' }} />
+          </div>
+        )}
       </DialogContent>
-      
+
       <DialogActions>
         <Button onClick={onClose} disabled={loading}>Отмена</Button>
         <Button variant="contained" onClick={handleSubmit} loading={loading}>

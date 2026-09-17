@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
-import { Button, IconButton, Skeleton, Dialog, DialogTitle, DialogActions } from '@mui/material'
+import { Button, IconButton, Skeleton, Dialog, DialogTitle, DialogActions, Snackbar } from '@mui/material'
 import EditIcon from '@mui/icons-material/Edit'
 import AddPostModal from './AddPostModal'
 
@@ -12,9 +12,30 @@ function PostsPage() {
   const [editingPost, setEditingPost] = useState<any>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarText, setSnackbarText] = useState('');
 
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const wsRef = useRef<WebSocket | null>(null);
+
+  useEffect(() => {
+    const ws = new WebSocket('ws://localhost:3001');
+    wsRef.current = ws;
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+      if (data.type === 'post') {
+        queryClient.setQueryData(['posts'], (old: any) => [data.post, ...old]);
+        setSnackbarText('Новый пост: ' + data.post.title);
+        setSnackbarOpen(true);
+      }
+    };
+
+    return () => {
+      ws.close();
+    };
+  }, []);
 
   const { data, isPending, isError, isFetching } = useQuery({
     queryKey: ['posts'],
@@ -37,6 +58,7 @@ function PostsPage() {
     onSuccess: (_result, newPost) => {
       const postWithId = { ...newPost, id: Date.now() };
       queryClient.setQueryData(['posts'], (old: any) => [postWithId, ...old]);
+      wsRef.current?.send(JSON.stringify({ type: 'post', post: postWithId }));
       setOpen(false);
     },
   });
@@ -133,6 +155,9 @@ function PostsPage() {
       ) : (
         data.map((post: any) => (
           <div key={post.id} style={{ border: '1px solid gray', margin: '10px', padding: '10px' }}>
+            {post.image && (
+              <img src={post.image} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
+            )}
             <h3>{post.title}</h3>
             <p>{post.body.slice(0, 100)}...</p>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
@@ -169,6 +194,13 @@ function PostsPage() {
           <Button color="error" variant="contained" onClick={handleConfirmDelete}>Удалить</Button>
         </DialogActions>
       </Dialog>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={2000}
+        onClose={() => setSnackbarOpen(false)}
+        message={snackbarText}
+      />
     </div>
   );
 }

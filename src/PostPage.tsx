@@ -33,6 +33,9 @@ function PostPage() {
 
   return (
     <div style={{ padding: '50p', lineHeight: '1.5'}}>
+      {post.image && (
+        <img src={post.image} style={{ width: '100%' }} />
+      )}
       <h1 style={{ marginBottom: '50px' }}>{post.title}</h1>
       <p>{post.body}</p>
     </div>
