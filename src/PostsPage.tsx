@@ -1,5 +1,4 @@
 import { useEffect, useRef, useState } from 'react'
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { Button, IconButton, Skeleton, Dialog, DialogTitle, DialogActions, Snackbar, Pagination } from '@mui/material'
 import EditIcon from '@mui/icons-material/Edit'
@@ -8,22 +7,22 @@ import AddPostModal from './AddPostModal'
 const isLocalPost = (id: number) => id > 100;
 
 function PostsPage() {
+  const [posts, setPosts] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
+
   const [open, setOpen] = useState(false);
   const [editingPost, setEditingPost] = useState<any>(null);
+  const [addingPost, setAddingPost] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarText, setSnackbarText] = useState('');
   const [page, setPage] = useState(1);
 
-  const queryClient = useQueryClient();
   const navigate = useNavigate();
   const wsRef = useRef<WebSocket | null>(null);
-  const pageRef = useRef(page);
-
-  useEffect(() => {
-    pageRef.current = page;
-  }, [page]);
 
   useEffect(() => {
     const ws = new WebSocket('ws://localhost:3001');
@@ -32,7 +31,7 @@ function PostsPage() {
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === 'post') {
-        queryClient.setQueryData(['posts', pageRef.current], (old: any) => [data.post, ...old]);
+        setPosts((old) => [data.post, ...old]);
         setSnackbarText('Новый пост: ' + data.post.title);
         setSnackbarOpen(true);
       }
@@ -43,69 +42,21 @@ function PostsPage() {
     };
   }, []);
 
-  const { data, isPending, isError, isFetching } = useQuery({
-    queryKey: ['posts', page],
-    queryFn: async () => {
-      const response = await fetch(`https://jsonplaceholder.typicode.com/posts?_page=${page}&_limit=10`);
-      return response.json();
-    },
-    staleTime: Infinity,
-  });
+  useEffect(() => {
+    setIsLoading(true);
+    setIsError(false);
 
-  const addPostMutation = useMutation({
-    mutationFn: async (newPost: any) => {
-      const response = await fetch('https://jsonplaceholder.typicode.com/posts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newPost),
+    fetch(`https://jsonplaceholder.typicode.com/posts?_page=${page}&_limit=10`)
+      .then((response) => response.json())
+      .then((data) => {
+        setPosts(data);
+        setIsLoading(false);
+      })
+      .catch(() => {
+        setIsError(true);
+        setIsLoading(false);
       });
-      return response.json();
-    },
-    onSuccess: (_result, newPost) => {
-      const postWithId = { ...newPost, id: Date.now() };
-      queryClient.setQueryData(['posts', page], (old: any) => [postWithId, ...old]);
-      wsRef.current?.send(JSON.stringify({ type: 'post', post: postWithId }));
-      setOpen(false);
-    },
-  });
-
-  const editPostMutation = useMutation({
-    mutationFn: async (post: any) => {
-      if (isLocalPost(post.id)) {
-        return post;
-      }
-      const response = await fetch(`https://jsonplaceholder.typicode.com/posts/${post.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(post),
-      });
-      return response.json();
-    },
-    onSuccess: (_result, updatedPost) => {
-      queryClient.setQueryData(['posts', page], (old: any) =>
-        old.map((p: any) => (p.id === updatedPost.id ? updatedPost : p))
-      );
-      setOpen(false);
-      setEditingPost(null);
-    },
-  });
-
-  const deletePostMutation = useMutation({
-    mutationFn: async (id: number) => {
-      if (isLocalPost(id)) {
-        return id;
-      }
-      const response = await fetch(`https://jsonplaceholder.typicode.com/posts/${id}`, {
-        method: 'DELETE',
-      });
-      return response.json();
-    },
-    onMutate: (id) => setDeletingId(id),
-    onSuccess: (_result, id) => {
-      queryClient.setQueryData(['posts', page], (old: any) => old.filter((p: any) => p.id !== id));
-    },
-    onSettled: () => setDeletingId(null),
-  });
+  }, [page]);
 
   const handleOpenAdd = () => {
     setEditingPost(null);
@@ -124,17 +75,65 @@ function PostsPage() {
 
   const handleSubmit = (post: any) => {
     if (editingPost) {
-      editPostMutation.mutate({ ...editingPost, ...post });
+      const updatedPost = { ...editingPost, ...post };
+
+      if (isLocalPost(updatedPost.id)) {
+        setPosts((old) => old.map((p) => (p.id === updatedPost.id ? updatedPost : p)));
+        setOpen(false);
+        setEditingPost(null);
+        return;
+      }
+
+      setEditingId(updatedPost.id);
+      fetch(`https://jsonplaceholder.typicode.com/posts/${updatedPost.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedPost),
+      })
+        .then((response) => response.json())
+        .then((result) => {
+          setPosts((old) => old.map((p) => (p.id === result.id ? result : p)));
+          setOpen(false);
+          setEditingPost(null);
+        })
+        .finally(() => setEditingId(null));
     } else {
-      addPostMutation.mutate(post);
+      setAddingPost(true);
+      fetch('https://jsonplaceholder.typicode.com/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(post),
+      })
+        .then((response) => response.json())
+        .then(() => {
+          const postWithId = { ...post, id: Date.now() };
+          setPosts((old) => [postWithId, ...old]);
+          wsRef.current?.send(JSON.stringify({ type: 'post', post: postWithId }));
+          setOpen(false);
+        })
+        .finally(() => setAddingPost(false));
     }
   };
 
   const handleConfirmDelete = () => {
-    if (confirmDeleteId !== null) {
-      deletePostMutation.mutate(confirmDeleteId);
-      setConfirmDeleteId(null);
+    if (confirmDeleteId === null) return;
+
+    const id = confirmDeleteId;
+    setConfirmDeleteId(null);
+
+    if (isLocalPost(id)) {
+      setPosts((old) => old.filter((p) => p.id !== id));
+      return;
     }
+
+    setDeletingId(id);
+    fetch(`https://jsonplaceholder.typicode.com/posts/${id}`, {
+      method: 'DELETE',
+    })
+      .then(() => {
+        setPosts((old) => old.filter((p) => p.id !== id));
+      })
+      .finally(() => setDeletingId(null));
   };
 
   if (isError) {
@@ -148,9 +147,7 @@ function PostsPage() {
         <Button variant="contained" onClick={handleOpenAdd}>Добавить пост</Button>
       </div>
 
-      {isFetching && !isPending && <p>Обновление данных...</p>}
-
-      {isPending ? (
+      {isLoading ? (
         Array.from({ length: 5 }).map((_, i) => (
           <div key={i} style={{ border: '1px solid gray',  margin: '10px', padding: '10px' }}>
             <Skeleton variant="text" width="60%" height={32} />
@@ -159,7 +156,7 @@ function PostsPage() {
           </div>
         ))
       ) : (
-        data.map((post: any) => (
+        posts.map((post: any) => (
           <div key={post.id} style={{ border: '1px solid gray', margin: '10px', padding: '10px' }}>
             {post.image && (
               <img src={post.image} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
@@ -202,7 +199,7 @@ function PostsPage() {
         onClose={handleCloseModal}
         onSubmit={handleSubmit}
         initialData={editingPost}
-        loading={addPostMutation.isPending || editPostMutation.isPending}
+        loading={addingPost || editingId !== null}
       />
 
       <Dialog open={confirmDeleteId !== null} onClose={() => setConfirmDeleteId(null)}>

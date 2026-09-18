@@ -1,39 +1,46 @@
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+
+const isLocalPost = (id: number) => id > 100;
 
 function PostPage() {
   const { id } = useParams();
-  const queryClient = useQueryClient();
+  const [post, setPost] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
 
-  const postQueries = queryClient.getQueryCache().findAll({ queryKey: ['posts'] });
-  let cachedPost: any = null;
-  for (const query of postQueries) {
-    const found = (query.state.data as any)?.find((p: any) => String(p.id) === id);
-    if (found) {
-      cachedPost = found;
+  useEffect(() => {
+    if (isLocalPost(Number(id))) {
+      setIsLoading(false);
+      setIsError(true);
+      return;
     }
-  }
 
-  const { data, isPending, isError } = useQuery({
-    queryKey: ['post', id],
-    queryFn: async () => {
-      const response = await fetch(`https://jsonplaceholder.typicode.com/posts/${id}`);
-      if (!response.ok) {
-        throw new Error('not found');
-      }
-      return response.json();
-    },
-    initialData: cachedPost,
-    enabled: !cachedPost,
-  });
+    setIsLoading(true);
+    setIsError(false);
 
-  const post = cachedPost ?? data;
+    fetch(`https://jsonplaceholder.typicode.com/posts/${id}`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error('not found');
+        }
+        return response.json();
+      })
+      .then((data) => {
+        setPost(data);
+        setIsLoading(false);
+      })
+      .catch(() => {
+        setIsError(true);
+        setIsLoading(false);
+      });
+  }, [id]);
 
-  if (isPending && !cachedPost) {
+  if (isLoading) {
     return <div>Загрузка идёт...</div>;
   }
 
-  if (isError && !cachedPost) {
+  if (isError || !post) {
     return <div>Пост не найден</div>;
   }
 
