@@ -3,11 +3,13 @@ import { useNavigate } from 'react-router-dom'
 import { Button, IconButton, Skeleton, Dialog, DialogTitle, DialogActions, Snackbar, Pagination } from '@mui/material'
 import EditIcon from '@mui/icons-material/Edit'
 import AddPostModal from './AddPostModal'
-
+import {usePostsStore} from './postsStore'
 const isLocalPost = (id: number) => id > 100;
+
 
 function PostsPage() {
   const [posts, setPosts] = useState<any[]>([]);
+  const setStorePosts = usePostsStore((state) => state.setPosts)
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
 
@@ -20,7 +22,6 @@ function PostsPage() {
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarText, setSnackbarText] = useState('');
   const [page, setPage] = useState(1);
-
   const navigate = useNavigate();
   const wsRef = useRef<WebSocket | null>(null);
 
@@ -50,6 +51,7 @@ function PostsPage() {
       .then((response) => response.json())
       .then((data) => {
         setPosts(data);
+        setStorePosts(data);
         setIsLoading(false);
       })
       .catch(() => {
