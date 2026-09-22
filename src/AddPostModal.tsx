@@ -1,16 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { Dialog, DialogTitle,  DialogContent, DialogActions, TextField, Button } from '@mui/material';
 
 function AddPostModal({ open, mode = 'create', initialData, loading, onClose, onSubmit }: any) {
-  const [title, setTitle] = useState('');
-  const [body, setBody] = useState('');
-  const [image, setImage] = useState<string | null>(null);
+  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm({
+    defaultValues: { title: '', body: '', image: null as string | null },
+  });
+  const image = watch('image');
 
   useEffect(() => {
     if (open) {
-      setTitle(initialData?.title ?? '');
-      setBody(initialData?.body ?? '');
-      setImage(initialData?.image ?? null);
+      reset({ title: initialData?.title ?? '', body: initialData?.body ?? '' });
+      setValue('image', initialData?.image ?? null);
     }
   }, [open, initialData]);
 
@@ -19,14 +20,13 @@ function AddPostModal({ open, mode = 'create', initialData, loading, onClose, on
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-      setImage(reader.result as string);
+      setValue('image', reader.result as string);
     };
     reader.readAsDataURL(file);
   };
 
-  const handleSubmit = () => {
-    if (!title || !body) return;
-    onSubmit({ title, body, image });
+  const onFormSubmit = (data: any) => {
+    onSubmit({ ...data, image });
   };
 
   return (
@@ -35,15 +35,17 @@ function AddPostModal({ open, mode = 'create', initialData, loading, onClose, on
       <DialogContent>
         <TextField
           label="Заголовок"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          {...register('title', { required: 'Заголовок обязателен' })}
+          error={!!errors.title}
+          helperText={errors.title?.message as string}
           fullWidth
           margin="normal"
         />
         <TextField
           label="Текст поста"
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
+          {...register('body', { required: 'Текст поста обязателен' })}
+          error={!!errors.body}
+          helperText={errors.body?.message as string}
           fullWidth
           multiline
           rows={4}
@@ -62,7 +64,7 @@ function AddPostModal({ open, mode = 'create', initialData, loading, onClose, on
 
       <DialogActions>
         <Button onClick={onClose} disabled={loading}>Отмена</Button>
-        <Button variant="contained" onClick={handleSubmit} loading={loading}>
+        <Button variant="contained" onClick={handleSubmit(onFormSubmit)} loading={loading}>
           {mode === 'edit' ? 'Сохранить' : 'Добавить'}
         </Button>
       </DialogActions>
