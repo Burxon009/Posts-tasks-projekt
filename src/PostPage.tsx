@@ -59,9 +59,9 @@ function PostPage() {
   const thisLength = post.title.length + post.body.length;
 
   const chartData = [
-    { name: 'Этот пост', value: thisLength },
-    { name: 'Самый длинный', value: maxLength },
-    { name: 'Самый короткий', value: minLength },
+    { name: 'Этот пост', Stolb: thisLength },
+    { name: 'Самый длинный', Stolb: maxLength },
+    { name: 'Самый короткий', Stolb: minLength },
   ];
 
   return (
@@ -76,7 +76,7 @@ function PostPage() {
         <XAxis dataKey="name" />
         <YAxis />
         <Tooltip />
-        <Bar dataKey="value" fill="#8884d8" />
+        <Bar dataKey="Stolb" fill="#8884d8" />
       </BarChart>
     </div>
   );
