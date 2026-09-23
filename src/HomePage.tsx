@@ -9,6 +9,7 @@ function HomePage() {
       <Typography variant="h4">Главное меню</Typography>
       <Button variant="contained" onClick={() => navigate('/posts')}>Посты</Button>
       <Button variant="contained" onClick={() => navigate('/chat')}>Чат</Button>
+      <Button variant="contained" onClick={() => navigate('/board')}>Доски</Button>
     </Stack>
   );
 }

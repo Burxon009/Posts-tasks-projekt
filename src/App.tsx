@@ -3,6 +3,7 @@ import HomePage from './HomePage'
 import PostsPage from './PostsPage'
 import PostPage from './PostPage'
 import ChatPage from './ChatPage'
+import BoardPage from './BoardPage'
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
       <Route path="/posts" element={<PostsPage />} />
       <Route path="/posts/:id" element={<PostPage />} />
       <Route path="/chat" element={<ChatPage />} />
+      <Route path="/board" element={<BoardPage />} />
     </Routes>
   )
 }
