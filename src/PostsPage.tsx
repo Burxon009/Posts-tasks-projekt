@@ -43,22 +43,24 @@ function PostsPage() {
     };
   }, []);
 
-  useEffect(() => {
-    setIsLoading(true);
-    setIsError(false);
+useEffect(() => {
+  setIsLoading(true);
+  setIsError(false);
 
-    fetch(`https://jsonplaceholder.typicode.com/posts?_page=${page}&_limit=10`)
-      .then((response) => response.json())
-      .then((data) => {
-        setPosts(data);
-        setStorePosts(data);
-        setIsLoading(false);
-      })
-      .catch(() => {
-        setIsError(true);
-        setIsLoading(false);
-      });
-  }, [page]);
+  fetch(`https://jsonplaceholder.typicode.com/posts?_page=${page}&_limit=10`)
+    .then((response) => response.json())
+    .then((data) => {
+      const localPosts = usePostsStore.getState().posts.filter((p) => isLocalPost(p.id));
+      const merged = [...localPosts, ...data];
+      setPosts(merged);
+      setStorePosts(merged);
+      setIsLoading(false);
+    })
+    .catch(() => {
+      setIsError(true);
+      setIsLoading(false);
+    });
+}, [page]);
 
   const handleOpenAdd = () => {
     setEditingPost(null);
@@ -79,12 +81,15 @@ function PostsPage() {
     if (editingPost) {
       const updatedPost = { ...editingPost, ...post };
 
-      if (isLocalPost(updatedPost.id)) {
-        setPosts((old) => old.map((p) => (p.id === updatedPost.id ? updatedPost : p)));
-        setOpen(false);
-        setEditingPost(null);
-        return;
-      }
+if (isLocalPost(updatedPost.id)) {
+  setPosts((old) => old.map((p) => (p.id === updatedPost.id ? updatedPost : p)));
+  setStorePosts(
+    usePostsStore.getState().posts.map((p) => (p.id === updatedPost.id ? updatedPost : p))
+  );
+  setOpen(false);
+  setEditingPost(null);
+  return;
+}
 
       setEditingId(updatedPost.id);
       fetch(`https://jsonplaceholder.typicode.com/posts/${updatedPost.id}`, {
@@ -110,6 +115,7 @@ function PostsPage() {
         .then(() => {
           const postWithId = { ...post, id: Date.now() };
           setPosts((old) => [postWithId, ...old]);
+          setStorePosts([postWithId, ...usePostsStore.getState().posts]);
           wsRef.current?.send(JSON.stringify({ type: 'post', post: postWithId }));
           setOpen(false);
         })

@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { usePostsStore } from "./postsStore";
 import { BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import { useParams } from "react-router-dom";
 
@@ -7,14 +8,23 @@ const isLocalPost = (id: number) => id > 100;
 function PostPage() {
   const { id } = useParams();
   const [post, setPost] = useState<any>(null);
+  const storePosts = usePostsStore((state) => state.posts);
   const [allPosts, setAllPosts] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
-
+  const [rotation, setRotation] = useState(0);
+  const [scale, setScale] = useState(1);
+  const [showControls, setShowControls] = useState(false);
   useEffect(() => {
     if (isLocalPost(Number(id))) {
+      const found = storePosts.find((p) => p.id === Number(id));
+      if (found) {
+        setPost(found);
+        setIsError(false);
+      } else {
+        setIsError(true);
+      }
       setIsLoading(false);
-      setIsError(true);
       return;
     }
 
@@ -67,7 +77,27 @@ function PostPage() {
   return (
     <div style={{ padding: '50p', lineHeight: '1.5'}}>
       {post.image && (
-        <img src={post.image} style={{ width: '100%' }} />
+        <div
+          onMouseEnter={() => setShowControls(true)}
+          onMouseLeave={() => setShowControls(false)}
+          style={{ position: 'relative', overflow: 'hidden' }}
+        >
+          <img
+            src={post.image}
+            style={{
+              width: '100%',
+              transform: `rotate(${rotation}deg) scale(${scale})`,
+            }}
+          />
+          {showControls && (
+            <div style={{ position: 'absolute', top: 0, right: 0, background: 'rgba(0,0,0,0.6)', padding: '4px' }}>
+              <button onClick={() => setRotation(rotation - 90)}>⟲</button>
+              <button onClick={() => setRotation(rotation + 90)}>⟳</button>
+              <button onClick={() => setScale(scale + 0.1)}>+</button>
+              <button onClick={() => setScale(scale - 0.1)}>-</button>
+            </div>
+          )}
+        </div>
       )}
       <h1 style={{ marginBottom: '50px' }}>{post.title}</h1>
       <p>{post.body}</p>
