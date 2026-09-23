@@ -88,6 +88,8 @@ if (isLocalPost(updatedPost.id)) {
   );
   setOpen(false);
   setEditingPost(null);
+  setSnackbarText('Пост успешно сохранён');
+  setSnackbarOpen(true);
   return;
 }
 
@@ -102,6 +104,8 @@ if (isLocalPost(updatedPost.id)) {
           setPosts((old) => old.map((p) => (p.id === result.id ? result : p)));
           setOpen(false);
           setEditingPost(null);
+          setSnackbarText('Пост успешно сохранён');
+          setSnackbarOpen(true);
         })
         .finally(() => setEditingId(null));
     } else {
