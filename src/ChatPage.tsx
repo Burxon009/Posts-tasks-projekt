@@ -1,12 +1,17 @@
 import { useEffect, useRef, useState } from 'react'
 import { Stack, Paper, Typography, TextField, Button, IconButton, Popover, Box } from '@mui/material'
 import ListIcon from '@mui/icons-material/List'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import { useNavigate } from 'react-router-dom'
 import { usePostsStore } from './postsStore'
+import { useTranslation } from 'react-i18next'
 
 function ChatPage() {
   const [messages, setMessages] = useState<string[]>([]);
   const [input, setInput] = useState('');
   const wsRef = useRef<WebSocket | null>(null);
+  const navigate = useNavigate();
+  const { t } = useTranslation();
   const posts = usePostsStore((state) => state.posts)
 const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
 
@@ -29,15 +34,16 @@ const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   const handleSend = () => {
     if (!input) return;
     wsRef.current?.send(JSON.stringify({ type: 'chat', text: input }));
-    setMessages((prev) => [...prev, `Я: ${input}`]);
+    setMessages((prev) => [...prev, `${t('chat.me')}: ${input}`]);
     setInput('');
   };
 
   return (
   <Stack spacing={2} style={{ margin: '20px' }}>
+    <Button sx={{ alignSelf: 'flex-start' }} startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)}>{t('common.back')}</Button>
     <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
-      <Typography variant="h4">Чат</Typography>
-      <IconButton onClick={(e) => setAnchorEl(e.currentTarget)}>
+      <Typography variant="h4">{t('chat.title')}</Typography>
+      <IconButton aria-label={t('chat.postsList')} onClick={(e) => setAnchorEl(e.currentTarget)}>
         <ListIcon sx={{color: "#fff"}} />
       </IconButton>
     </Stack>
@@ -68,7 +74,7 @@ const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
           onChange={(e) => setInput(e.target.value)}
           style={{backgroundColor: 'white', borderRadius: '40px'}}
         />
-        <Button variant="contained" onClick={handleSend} style={{borderRadius: '40px'}}>Отправить</Button>
+        <Button variant="contained" onClick={handleSend} style={{borderRadius: '40px'}}>{t('chat.send')}</Button>
       </Stack>
     </Stack>
   );

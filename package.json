@@ -1,14 +1,16 @@
 {
   "name": "posts-app",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "start": "concurrently --names \"FRONT,SERVER\" -c \"blue,green\" \"vite\" \"cd server && npm run dev\""
+    "start": "concurrently --names \"FRONT,SERVER\" -c \"blue,green\" \"vite\" \"cd server && npm run dev\"",
+    "electron:dev": "concurrently -k --names \"VITE,ELECTRON\" -c \"blue,magenta\" \"vite\" \"wait-on tcp:5173 && electron .\"",
+    "electron:build": "npm run build && electron-builder --win"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -16,11 +18,16 @@
     "@hello-pangea/dnd": "^18.0.1",
     "@mui/icons-material": "^9.4.0",
     "@mui/material": "^9.4.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "i18next": "^26.4.2",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
     "react-hook-form": "^7.88.0",
+    "react-i18next": "^17.0.15",
     "react-router-dom": "^7.18.3",
     "recharts": "^3.10.1",
+    "ws": "^8.21.3",
     "zustand": "^5.0.15"
   },
   "devDependencies": {
@@ -29,8 +36,40 @@
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.1.0",
     "concurrently": "^10.0.5",
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3",
     "oxlint": "^1.79.0",
     "typescript": "~6.0.2",
-    "vite": "^8.2.2"
+    "vite": "^8.2.2",
+    "wait-on": "^9.1.0"
+  },
+  "allowScripts": {
+    "electron@44.4.5": true
+  },
+  "main": "electron/main.cjs",
+  "description": "Posts App",
+  "author": "burha",
+  "build": {
+    "appId": "com.burha.postsapp",
+    "productName": "Posts App",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "server/index.js",
+      "server/package.json"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
   }
 }

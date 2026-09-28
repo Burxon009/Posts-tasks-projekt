@@ -30,6 +30,9 @@ wss.on('connection', (ws) => {
 });
 
 const PORT = 3001;
+server.on('error', (err) => {
+  console.error('Не удалось запустить сервер:', err.message);
+});
 server.listen(PORT, () => {
   console.log(`Сервер запущен на http://localhost:${PORT}`);
 });

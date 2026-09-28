@@ -1,12 +1,14 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { Dialog, DialogTitle,  DialogContent, DialogActions, TextField, Button } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 
 function AddPostModal({ open, mode = 'create', initialData, loading, onClose, onSubmit }: any) {
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm({
     defaultValues: { title: '', body: '', image: null as string | null },
   });
   const image = watch('image');
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (open) {
@@ -31,19 +33,19 @@ function AddPostModal({ open, mode = 'create', initialData, loading, onClose, on
 
   return (
     <Dialog open={open} onClose={onClose} fullWidth>
-      <DialogTitle>{mode === 'edit' ? 'Редактировать пост' : 'Добавить пост'}</DialogTitle>
+      <DialogTitle>{mode === 'edit' ? t('modal.editTitle') : t('modal.addTitle')}</DialogTitle>
       <DialogContent>
         <TextField
-          label="Заголовок"
-          {...register('title', { required: 'Заголовок обязателен' })}
+          label={t('modal.titleLabel')}
+          {...register('title', { required: t('modal.titleRequired') })}
           error={!!errors.title}
           helperText={errors.title?.message as string}
           fullWidth
           margin="normal"
         />
         <TextField
-          label="Текст поста"
-          {...register('body', { required: 'Текст поста обязателен' })}
+          label={t('modal.bodyLabel')}
+          {...register('body', { required: t('modal.bodyRequired') })}
           error={!!errors.body}
           helperText={errors.body?.message as string}
           fullWidth
@@ -52,7 +54,7 @@ function AddPostModal({ open, mode = 'create', initialData, loading, onClose, on
           margin="normal"
         />
         <Button component="label" variant="outlined" style={{ marginTop: '10px' }}>
-          Выбрать фото
+          {t('modal.choosePhoto')}
           <input type="file" accept="image/*" hidden onChange={handleImageChange} />
         </Button>
         {image && (
@@ -63,9 +65,9 @@ function AddPostModal({ open, mode = 'create', initialData, loading, onClose, on
       </DialogContent>
 
       <DialogActions>
-        <Button onClick={onClose} disabled={loading}>Отмена</Button>
+        <Button onClick={onClose} disabled={loading}>{t('common.cancel')}</Button>
         <Button variant="contained" onClick={handleSubmit(onFormSubmit)} loading={loading}>
-          {mode === 'edit' ? 'Сохранить' : 'Добавить'}
+          {mode === 'edit' ? t('modal.save') : t('modal.add')}
         </Button>
       </DialogActions>
     </Dialog>

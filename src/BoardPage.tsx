@@ -1,21 +1,41 @@
-import { useEffect, useState } from 'react';
+import { useEffect} from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { usePostsStore } from './postsStore';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@mui/material';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import { useTranslation } from 'react-i18next';
 
 function BoardPage() {
   const storePosts = usePostsStore((state) => state.posts);
-  const [boards, setBoards] = useState<any>({
-    new: [],
-    favorite: [],
-    archive: [],
-  });
+  const navigate = useNavigate();
+  const { t } = useTranslation();
+  const deletedIds = usePostsStore((state) => state.deletedIds);
+  const boards = usePostsStore((state) => state.boards);
+  const setBoards = usePostsStore((state) => state.setBoards);
 
   useEffect(() => {
-    setBoards((old: any) => ({
-      ...old,
-      new: storePosts,
-    }));
-  }, []);
+    const saved = usePostsStore.getState().boards;
+
+    if (!saved) {
+      setBoards({ new: storePosts, favorite: [], archive: [] });
+      return;
+    }
+
+    const clean = (list: any[]) =>
+      list
+        .filter((p) => !deletedIds.includes(p.id))
+        .map((p) => storePosts.find((s) => s.id === p.id) || p);
+
+    const allIds = [...saved.new, ...saved.favorite, ...saved.archive].map((p: any) => p.id);
+    const newPosts = storePosts.filter((p) => !allIds.includes(p.id));
+
+    setBoards({
+      new: [...newPosts, ...clean(saved.new)],
+      favorite: clean(saved.favorite),
+      archive: clean(saved.archive),
+    });
+  }, [storePosts, deletedIds]);
 
   const onDragEnd = (result: any) => {
     const { source, destination } = result;
@@ -35,10 +55,11 @@ function BoardPage() {
       [destination.droppableId]: destBoard,
     });
   };
-
+  if (!boards) return null;
   return (
     <div>
-      <h2>Доски</h2>
+      <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)}>{t('common.back')}</Button>
+      <h2>{t('board.title')}</h2>
       <DragDropContext onDragEnd={onDragEnd}>
         <div style={{ display: 'flex', gap: '20px', padding: '20px' }}>
           {Object.keys(boards).map((boardKey) => (
@@ -49,7 +70,7 @@ function BoardPage() {
                   {...provided.droppableProps}
                   style={{ flex: 1, border: '1px solid gray', padding: '10px', minHeight: '300px' }}
                 >
-                  <h3>{boardKey}</h3>
+                  <h3>{t('board.' + boardKey)}</h3>
                   {boards[boardKey].map((post: any, index: number) => (
                     <Draggable key={post.id} draggableId={String(post.id)} index={index}>
                       {(provided: any) => (
@@ -78,4 +99,4 @@ function BoardPage() {
   );
 }
 
-export default BoardPage;
+export default BoardPage;

@@ -2,8 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Button, IconButton, Skeleton, Dialog, DialogTitle, DialogActions, Snackbar, Pagination } from '@mui/material'
 import EditIcon from '@mui/icons-material/Edit'
+import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import AddPostModal from './AddPostModal'
 import {usePostsStore} from './postsStore'
+import { useTranslation } from 'react-i18next'
 const isLocalPost = (id: number) => id > 100;
 
 
@@ -23,6 +25,7 @@ function PostsPage() {
   const [snackbarText, setSnackbarText] = useState('');
   const [page, setPage] = useState(1);
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
@@ -33,7 +36,8 @@ function PostsPage() {
       const data = JSON.parse(event.data);
       if (data.type === 'post') {
         setPosts((old) => [data.post, ...old]);
-        setSnackbarText('Новый пост: ' + data.post.title);
+        setStorePosts([data.post, ...usePostsStore.getState().posts]);
+        setSnackbarText(i18n.t('posts.newPost', { title: data.post.title }));
         setSnackbarOpen(true);
       }
     };
@@ -51,7 +55,8 @@ useEffect(() => {
     .then((response) => response.json())
     .then((data) => {
       const localPosts = usePostsStore.getState().posts.filter((p) => isLocalPost(p.id));
-      const merged = [...localPosts, ...data];
+      const deletedIds = usePostsStore.getState().deletedIds;
+      const merged = [...localPosts, ...data].filter((p) => !deletedIds.includes(p.id));
       setPosts(merged);
       setStorePosts(merged);
       setIsLoading(false);
@@ -88,7 +93,7 @@ if (isLocalPost(updatedPost.id)) {
   );
   setOpen(false);
   setEditingPost(null);
-  setSnackbarText('Пост успешно сохранён');
+  setSnackbarText(t('posts.saved'));
   setSnackbarOpen(true);
   return;
 }
@@ -102,9 +107,12 @@ if (isLocalPost(updatedPost.id)) {
         .then((response) => response.json())
         .then((result) => {
           setPosts((old) => old.map((p) => (p.id === result.id ? result : p)));
+          setStorePosts(
+            usePostsStore.getState().posts.map((p) => (p.id === result.id ? result : p))
+          );
           setOpen(false);
           setEditingPost(null);
-          setSnackbarText('Пост успешно сохранён🫡');
+          setSnackbarText(t('posts.savedEmoji'));
           setSnackbarOpen(true);
         })
         .finally(() => setEditingId(null));
@@ -135,6 +143,8 @@ if (isLocalPost(updatedPost.id)) {
 
     if (isLocalPost(id)) {
       setPosts((old) => old.filter((p) => p.id !== id));
+      setStorePosts(usePostsStore.getState().posts.filter((p) => p.id !== id));
+      usePostsStore.getState().addDeletedId(id);
       return;
     }
 
@@ -144,19 +154,22 @@ if (isLocalPost(updatedPost.id)) {
     })
       .then(() => {
         setPosts((old) => old.filter((p) => p.id !== id));
+        setStorePosts(usePostsStore.getState().posts.filter((p) => p.id !== id));
+        usePostsStore.getState().addDeletedId(id);
       })
       .finally(() => setDeletingId(null));
   };
 
   if (isError) {
-    return <div>Ошибка загрузки</div>;
+    return <div>{t('common.loadError')}</div>;
   }
 
   return (
     <div>
+      <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)}>{t('common.back')}</Button>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '10px' }}>
-        <h2>Посты</h2>
-        <Button variant="contained" onClick={handleOpenAdd}>Добавить пост</Button>
+        <h2>{t('posts.title')}</h2>
+        <Button variant="contained" onClick={handleOpenAdd}>{t('posts.add')}</Button>
       </div>
 
       {isLoading ? (
@@ -176,8 +189,8 @@ if (isLocalPost(updatedPost.id)) {
             <h3>{post.title}</h3>
             <p>{post.body.slice(0, 100)}...</p>
             <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-              <button onClick={() => navigate(`/posts/${post.id}`)}>Открыть пост</button>
-              <IconButton onClick={() => handleOpenEdit(post)} size="small" aria-label="Редактировать">
+              <button onClick={() => navigate(`/posts/${post.id}`)}>{t('posts.open')}</button>
+              <IconButton onClick={() => handleOpenEdit(post)} size="small" aria-label={t('posts.edit')}>
                 <EditIcon fontSize="small" sx={{ color: 'yellow' }} />
               </IconButton>
               <Button
@@ -186,7 +199,7 @@ if (isLocalPost(updatedPost.id)) {
                 loading={deletingId === post.id}
                 onClick={() => setConfirmDeleteId(post.id)}
               >
-                Удалить
+                {t('common.delete')}
               </Button>
             </div>
           </div>
@@ -215,10 +228,10 @@ if (isLocalPost(updatedPost.id)) {
       />
 
       <Dialog open={confirmDeleteId !== null} onClose={() => setConfirmDeleteId(null)}>
-        <DialogTitle style={{ color: '#691e25' }}>Вы действительно хотите удалить этот пост?</DialogTitle>
+        <DialogTitle style={{ color: '#691e25' }}>{t('posts.confirmDelete')}</DialogTitle>
         <DialogActions>
-          <Button onClick={() => setConfirmDeleteId(null)}>Отмена</Button>
-          <Button color="error" variant="contained" onClick={handleConfirmDelete}>Удалить</Button>
+          <Button onClick={() => setConfirmDeleteId(null)}>{t('common.cancel')}</Button>
+          <Button color="error" variant="contained" onClick={handleConfirmDelete}>{t('common.delete')}</Button>
         </DialogActions>
       </Dialog>
 

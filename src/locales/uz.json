@@ -1,0 +1,61 @@
+{
+  "menu": {
+    "home": "Bosh sahifa",
+    "posts": "Postlar",
+    "chat": "Chat",
+    "board": "Doskalar"
+  },
+  "common": {
+    "back": "Orqaga",
+    "cancel": "Bekor qilish",
+    "delete": "O'chirish",
+    "loadError": "Yuklashda xatolik",
+    "loading": "Yuklanmoqda..."
+  },
+  "home": {
+    "title": "Asosiy menyu"
+  },
+  "posts": {
+    "title": "Postlar",
+    "add": "Post qo'shish",
+    "open": "Postni ochish",
+    "edit": "Tahrirlash",
+    "newPost": "Yangi post: {{title}}",
+    "saved": "Post muvaffaqiyatli saqlandi",
+    "savedEmoji": "Post muvaffaqiyatli saqlandi🫡",
+    "confirmDelete": "Haqiqatan ham bu postni o'chirmoqchimisiz?"
+  },
+  "post": {
+    "notFound": "Post topilmadi",
+    "thisPost": "Shu post",
+    "longest": "Eng uzun",
+    "shortest": "Eng qisqa",
+    "rotateLeft": "Chapga burish",
+    "rotateRight": "O'ngga burish",
+    "zoomIn": "Kattalashtirish",
+    "zoomOut": "Kichraytirish"
+  },
+  "modal": {
+    "addTitle": "Post qo'shish",
+    "editTitle": "Postni tahrirlash",
+    "titleLabel": "Sarlavha",
+    "titleRequired": "Sarlavha majburiy",
+    "bodyLabel": "Post matni",
+    "bodyRequired": "Post matni majburiy",
+    "choosePhoto": "Rasm tanlash",
+    "save": "Saqlash",
+    "add": "Qo'shish"
+  },
+  "chat": {
+    "title": "Chat",
+    "me": "Men",
+    "send": "Yuborish",
+    "postsList": "Postlar ro'yxati"
+  },
+  "board": {
+    "title": "Doskalar",
+    "new": "Yangi",
+    "favorite": "Sevimlilar",
+    "archive": "Arxiv"
+  }
+}

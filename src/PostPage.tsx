@@ -1,12 +1,17 @@
 import { useEffect, useState } from "react";
 import { usePostsStore } from "./postsStore";
 import { BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
+import { Button } from "@mui/material";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import { useTranslation } from "react-i18next";
 
 const isLocalPost = (id: number) => id > 100;
 
 function PostPage() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { t } = useTranslation();
   const [post, setPost] = useState<any>(null);
   const storePosts = usePostsStore((state) => state.posts);
   const [allPosts, setAllPosts] = useState<any[]>([]);
@@ -56,11 +61,11 @@ function PostPage() {
   }, []);
 
   if (isLoading) {
-    return <div>Загрузка идёт...</div>;
+    return <div>{t('common.loading')}</div>;
   }
 
   if (isError || !post) {
-    return <div>Пост не найден</div>;
+    return <div>{t('post.notFound')}</div>;
   }
 
     const lengths = allPosts.map((p) => p.title.length + p.body.length);
@@ -69,13 +74,14 @@ function PostPage() {
   const thisLength = post.title.length + post.body.length;
 
   const chartData = [
-    { name: 'Этот пост', Stolb: thisLength },
-    { name: 'Самый длинный', Stolb: maxLength },
-    { name: 'Самый короткий', Stolb: minLength },
+    { name: t('post.thisPost'), Stolb: thisLength },
+    { name: t('post.longest'), Stolb: maxLength },
+    { name: t('post.shortest'), Stolb: minLength },
   ];
 
   return (
     <div style={{ padding: '50p', lineHeight: '1.5'}}>
+      <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)}>{t('common.back')}</Button>
       {post.image && (
         <div
           onMouseEnter={() => setShowControls(true)}
@@ -91,10 +97,10 @@ function PostPage() {
           />
           {showControls && (
             <div style={{ position: 'absolute', top: 0, right: 0, background: 'rgba(0,0,0,0.6)', padding: '4px' }}>
-              <button onClick={() => setRotation(rotation - 90)}>⟲</button>
-              <button onClick={() => setRotation(rotation + 90)}>⟳</button>
-              <button onClick={() => setScale(scale + 0.1)}>+</button>
-              <button onClick={() => setScale(scale - 0.1)}>-</button>
+              <button title={t('post.rotateLeft')} onClick={() => setRotation(rotation - 90)}>⟲</button>
+              <button title={t('post.rotateRight')} onClick={() => setRotation(rotation + 90)}>⟳</button>
+              <button title={t('post.zoomIn')} onClick={() => setScale(scale + 0.1)}>+</button>
+              <button title={t('post.zoomOut')} onClick={() => setScale(scale - 0.1)}>-</button>
             </div>
           )}
         </div>
