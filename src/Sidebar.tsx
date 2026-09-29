@@ -3,6 +3,7 @@ import HomeIcon from '@mui/icons-material/Home'
 import ArticleIcon from '@mui/icons-material/Article'
 import ChatIcon from '@mui/icons-material/Chat'
 import DashboardIcon from '@mui/icons-material/Dashboard'
+import LocationOnIcon from '@mui/icons-material/LocationOn'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 
@@ -16,6 +17,7 @@ function Sidebar() {
     { path: '/posts', label: t('menu.posts'), icon: <ArticleIcon /> },
     { path: '/chat', label: t('menu.chat'), icon: <ChatIcon /> },
     { path: '/board', label: t('menu.board'), icon: <DashboardIcon /> },
+    {path: '/location', label: t('menu.location'), icon: <LocationOnIcon />}
   ];
 
   const isActive = (path: string) => {

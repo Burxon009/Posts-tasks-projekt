@@ -6,13 +6,14 @@ import ChatPage from './ChatPage'
 import BoardPage from './BoardPage'
 import Sidebar from './Sidebar'
 import { Box } from '@mui/material'
-
+import LocationPage from './LocationPage'
 function App() {
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh' }}>
       <Sidebar />
       <Box sx={{ flexGrow: 1, minWidth: 0 }}>
         <Routes>
+          <Route path="/location" element={<LocationPage />} />
           <Route path="/" element={<HomePage />} />
           <Route path="/posts" element={<PostsPage />} />
           <Route path="/posts/:id" element={<PostPage />} />
