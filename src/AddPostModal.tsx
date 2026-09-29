@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { Dialog, DialogTitle,  DialogContent, DialogActions, TextField, Button } from '@mui/material';
+import { Dialog, DialogTitle,  DialogContent, DialogActions, TextField, Button, Box } from '@mui/material';
 import { useTranslation } from 'react-i18next';
 
 function AddPostModal({ open, mode = 'create', initialData, loading, onClose, onSubmit }: any) {
@@ -32,8 +32,8 @@ function AddPostModal({ open, mode = 'create', initialData, loading, onClose, on
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth>
-      <DialogTitle>{mode === 'edit' ? t('modal.editTitle') : t('modal.addTitle')}</DialogTitle>
+    <Dialog open={open} onClose={onClose} fullWidth slotProps={{ paper: { sx: { borderRadius: '16px', p: 1 } } }}>
+      <DialogTitle sx={{ fontWeight: 700 }}>{mode === 'edit' ? t('modal.editTitle') : t('modal.addTitle')}</DialogTitle>
       <DialogContent>
         <TextField
           label={t('modal.titleLabel')}
@@ -53,18 +53,20 @@ function AddPostModal({ open, mode = 'create', initialData, loading, onClose, on
           rows={4}
           margin="normal"
         />
-        <Button component="label" variant="outlined" style={{ marginTop: '10px' }}>
+        <Button component="label" variant="outlined" sx={{ mt: 1 }}>
           {t('modal.choosePhoto')}
           <input type="file" accept="image/*" hidden onChange={handleImageChange} />
         </Button>
         {image && (
-          <div>
-            <img src={image} style={{ maxWidth: '200px', marginTop: '10px' }} />
-          </div>
+          <Box
+            component="img"
+            src={image}
+            sx={{ display: 'block', maxWidth: 200, mt: 2, borderRadius: '12px', border: 1, borderColor: 'divider' }}
+          />
         )}
       </DialogContent>
 
-      <DialogActions>
+      <DialogActions sx={{ px: 3, pb: 2 }}>
         <Button onClick={onClose} disabled={loading}>{t('common.cancel')}</Button>
         <Button variant="contained" onClick={handleSubmit(onFormSubmit)} loading={loading}>
           {mode === 'edit' ? t('modal.save') : t('modal.add')}

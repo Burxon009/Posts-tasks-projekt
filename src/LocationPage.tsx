@@ -1,22 +1,15 @@
-import {MapContainer, TileLayer, Marker, Popup} from 'react-leaflet'
+import {MapContainer, TileLayer, Marker, Popup, Polygon} from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
-import { Button, Typography, IconButton, Snackbar } from '@mui/material'
+import { Button, Typography, IconButton, Snackbar, Box, useTheme } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import MyLocationIcon from '@mui/icons-material/MyLocation'
 import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useRef, useState } from 'react'
+import { useThemeStore } from './themeStore'
 
 const position: any = [41.3420557, 69.3366532]
-
-const icon = L.divIcon({
-    html: '<div style="font-size:36px;line-height:40px">🏢</div>',
-    className: '',
-    iconSize: [40, 40],
-    iconAnchor: [20, 40],
-    popupAnchor: [0, -40]
-})
 
 const myIcon = L.divIcon({
     html: '<div style="font-size:36px;line-height:40px">📍</div>',
@@ -33,6 +26,17 @@ function LocationPage(){
     const [myPosition, setMyPosition] = useState<any>(null)
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
+    const theme = useTheme()
+    const mode = useThemeStore((state) => state.mode)
+    const primary = theme.palette.primary.main
+
+    const icon = L.divIcon({
+        html: `<div style="width:44px;height:44px;border-radius:50%;background:${primary};border:3px solid #fff;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 2px 8px rgba(0,0,0,0.35)">🏢</div>`,
+        className: '',
+        iconSize: [44, 44],
+        iconAnchor: [22, 22],
+        popupAnchor: [0, -22]
+    })
 
     const handleMyLocation = () => {
         if (!navigator.geolocation) {
@@ -55,12 +59,27 @@ function LocationPage(){
     }
 
     return(
-        <div style={{ margin: '20px' }}>
-            <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)}>{t('common.back')}</Button>
-            <Typography variant="h4">{t('location.title')}</Typography>
-            <div style={{ position: 'relative' }}>
-                <MapContainer ref={mapRef} center={position} zoom={17} style={{height: "80vh", width: "100%"}}>
-                    <TileLayer url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png' />
+        <Box sx={{ p: 4 }}>
+            <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)} sx={{ mb: 2 }}>{t('common.back')}</Button>
+            <Typography variant="h4" sx={{ mb: 3 }}>{t('location.title')}</Typography>
+            <Box
+                sx={{
+                    position: 'relative',
+                    borderRadius: '16px',
+                    overflow: 'hidden',
+                    boxShadow: 6,
+                    border: 1,
+                    borderColor: 'divider',
+                    '& .leaflet-tile-pane': {
+                        filter: mode === 'dark' ? 'invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) sepia(0.5) hue-rotate(220deg) saturate(1.8)' : 'none',
+                    },
+                }}
+            >
+                <MapContainer ref={mapRef} center={position} zoom={17} style={{height: "75vh", width: "100%"}}>
+                    <TileLayer
+                        url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+                        attribution='&copy; OpenStreetMap'
+                    />
                     <Marker position={position} icon={icon}>
                         <Popup>
                             <b>Uzinfocom</b><br />
@@ -69,6 +88,16 @@ function LocationPage(){
                             {t('location.phoneLabel')}: <a href="tel:+998712022202">+998 71 202-22-02</a>
                         </Popup>
                     </Marker>
+                    
+                    <Polygon
+                        positions={[
+                            [41.3418, 69.3366],
+                            [41.3422, 69.3359],
+                            [41.3427, 69.3365],
+                            [41.3423, 69.3372],
+                        ]}
+                        pathOptions={{ color: primary, weight: 3, fillOpacity: 0.15, dashArray: '6 6' }}
+                    />
                     {myPosition && (
                         <Marker position={myPosition} icon={myIcon}>
                             <Popup>{t('location.youAreHere')}</Popup>
@@ -80,18 +109,29 @@ function LocationPage(){
                     title={t('location.myLocation')}
                     onClick={handleMyLocation}
                     disabled={loading}
-                    style={{ position: 'absolute', right: '20px', bottom: '30px', zIndex: 1000, backgroundColor: 'white', boxShadow: '0 2px 6px rgba(0,0,0,0.3)' }}
+                    sx={{
+                        position: 'absolute',
+                        right: 20,
+                        bottom: 30,
+                        zIndex: 1000,
+                        width: 48,
+                        height: 48,
+                        bgcolor: 'primary.main',
+                        color: 'primary.contrastText',
+                        boxShadow: 4,
+                        '&:hover': { bgcolor: 'primary.dark' },
+                    }}
                 >
                     <MyLocationIcon />
                 </IconButton>
-            </div>
+            </Box>
             <Snackbar
                 open={Boolean(error)}
                 autoHideDuration={4000}
                 onClose={() => setError('')}
                 message={error}
             />
-        </div>
+        </Box>
     )
 }
 

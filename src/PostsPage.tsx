@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Button, IconButton, Skeleton, Dialog, DialogTitle, DialogActions, Snackbar, Pagination } from '@mui/material'
+import { Button, IconButton, Skeleton, Dialog, DialogTitle, DialogActions, Snackbar, Pagination, Box, Card, CardContent, CardActions, CardMedia, Typography, Stack } from '@mui/material'
 import EditIcon from '@mui/icons-material/Edit'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import AddPostModal from './AddPostModal'
@@ -161,61 +161,68 @@ if (isLocalPost(updatedPost.id)) {
   };
 
   if (isError) {
-    return <div>{t('common.loadError')}</div>;
+    return <Box sx={{ p: 4 }}><Typography sx={{ color: 'error.main' }}>{t('common.loadError')}</Typography></Box>;
   }
 
   return (
-    <div>
-      <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)}>{t('common.back')}</Button>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: '10px' }}>
-        <h2>{t('posts.title')}</h2>
+    <Box sx={{ p: 4 }}>
+      <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)} sx={{ mb: 2 }}>{t('common.back')}</Button>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4">{t('posts.title')}</Typography>
         <Button variant="contained" onClick={handleOpenAdd}>{t('posts.add')}</Button>
-      </div>
+      </Box>
 
-      {isLoading ? (
-        Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} style={{ border: '1px solid gray',  margin: '10px', padding: '10px' }}>
-            <Skeleton variant="text" width="60%" height={32} />
-            <Skeleton variant="text" width="100%" />
-            <Skeleton variant="text" width="80%" />
-          </div>
-        ))
-      ) : (
-        posts.map((post: any) => (
-          <div key={post.id} style={{ border: '1px solid gray', margin: '10px', padding: '10px' }}>
-            {post.image && (
-              <img src={post.image} style={{ width: '100%', height: '200px', objectFit: 'cover' }} />
-            )}
-            <h3>{post.title}</h3>
-            <p>{post.body.slice(0, 100)}...</p>
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-              <button onClick={() => navigate(`/posts/${post.id}`)}>{t('posts.open')}</button>
-              <IconButton onClick={() => handleOpenEdit(post)} size="small" aria-label={t('posts.edit')}>
-                <EditIcon fontSize="small" sx={{ color: 'yellow' }} />
-              </IconButton>
-              <Button
-                size="small"
-                color="error"
-                loading={deletingId === post.id}
-                onClick={() => setConfirmDeleteId(post.id)}
-              >
-                {t('common.delete')}
-              </Button>
-            </div>
-          </div>
-        ))
-      )}
+      <Stack spacing={2}>
+        {isLoading ? (
+          Array.from({ length: 5 }).map((_, i) => (
+            <Card key={i} elevation={2}>
+              <CardContent>
+                <Skeleton variant="text" width="60%" height={32} />
+                <Skeleton variant="text" width="100%" />
+                <Skeleton variant="text" width="80%" />
+              </CardContent>
+            </Card>
+          ))
+        ) : (
+          posts.map((post: any) => (
+            <Card
+              key={post.id}
+              elevation={2}
+              sx={{ transition: 'transform 0.2s, box-shadow 0.2s', '&:hover': { transform: 'translateY(-3px)', boxShadow: 6 } }}
+            >
+              {post.image && (
+                <CardMedia component="img" image={post.image} sx={{ height: 200, objectFit: 'cover' }} />
+              )}
+              <CardContent>
+                <Typography variant="h6" sx={{ mb: 1 }}>{post.title}</Typography>
+                <Typography sx={{ color: 'text.secondary' }}>{post.body.slice(0, 100)}...</Typography>
+              </CardContent>
+              <CardActions sx={{ px: 2, pb: 2 }}>
+                <Button size="small" variant="outlined" onClick={() => navigate(`/posts/${post.id}`)}>{t('posts.open')}</Button>
+                <IconButton onClick={() => handleOpenEdit(post)} size="small" aria-label={t('posts.edit')} title={t('posts.edit')}>
+                  <EditIcon fontSize="small" color="primary" />
+                </IconButton>
+                <Button
+                  size="small"
+                  color="error"
+                  loading={deletingId === post.id}
+                  onClick={() => setConfirmDeleteId(post.id)}
+                  sx={{ ml: 'auto' }}
+                >
+                  {t('common.delete')}
+                </Button>
+              </CardActions>
+            </Card>
+          ))
+        )}
+      </Stack>
 
       <Pagination
         count={10}
         page={page}
         onChange={(_e, value) => setPage(value)}
-        style={{ margin: '10px',}}
-          sx={{
-    '& .MuiPaginationItem-root': {
-      color: 'green',
-    },
-  }}
+        color="primary"
+        sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}
       />
 
       <AddPostModal
@@ -228,8 +235,8 @@ if (isLocalPost(updatedPost.id)) {
       />
 
       <Dialog open={confirmDeleteId !== null} onClose={() => setConfirmDeleteId(null)}>
-        <DialogTitle style={{ color: '#691e25' }}>{t('posts.confirmDelete')}</DialogTitle>
-        <DialogActions>
+        <DialogTitle>{t('posts.confirmDelete')}</DialogTitle>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
           <Button onClick={() => setConfirmDeleteId(null)}>{t('common.cancel')}</Button>
           <Button color="error" variant="contained" onClick={handleConfirmDelete}>{t('common.delete')}</Button>
         </DialogActions>
@@ -241,7 +248,7 @@ if (isLocalPost(updatedPost.id)) {
         onClose={() => setSnackbarOpen(false)}
         message={snackbarText}
       />
-    </div>
+    </Box>
   );
 }
 

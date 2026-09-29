@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { usePostsStore } from "./postsStore";
 import { BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import { useParams, useNavigate } from "react-router-dom";
-import { Button } from "@mui/material";
+import { Button, Box, Card, CardContent, Typography, IconButton, useTheme } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useTranslation } from "react-i18next";
 
@@ -12,6 +12,7 @@ function PostPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { t } = useTranslation();
+  const theme = useTheme();
   const [post, setPost] = useState<any>(null);
   const storePosts = usePostsStore((state) => state.posts);
   const [allPosts, setAllPosts] = useState<any[]>([]);
@@ -61,11 +62,16 @@ function PostPage() {
   }, []);
 
   if (isLoading) {
-    return <div>{t('common.loading')}</div>;
+    return <Box sx={{ p: 4 }}><Typography sx={{ color: 'text.secondary' }}>{t('common.loading')}</Typography></Box>;
   }
 
   if (isError || !post) {
-    return <div>{t('post.notFound')}</div>;
+    return (
+      <Box sx={{ p: 4 }}>
+        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)} sx={{ mb: 2 }}>{t('common.back')}</Button>
+        <Typography sx={{ color: 'error.main' }}>{t('post.notFound')}</Typography>
+      </Box>
+    );
   }
 
     const lengths = allPosts.map((p) => p.title.length + p.body.length);
@@ -80,41 +86,52 @@ function PostPage() {
   ];
 
   return (
-    <div style={{ padding: '50p', lineHeight: '1.5'}}>
-      <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)}>{t('common.back')}</Button>
-      {post.image && (
-        <div
-          onMouseEnter={() => setShowControls(true)}
-          onMouseLeave={() => setShowControls(false)}
-          style={{ position: 'relative', overflow: 'hidden' }}
-        >
-          <img
-            src={post.image}
-            style={{
-              width: '100%',
-              transform: `rotate(${rotation}deg) scale(${scale})`,
-            }}
-          />
-          {showControls && (
-            <div style={{ position: 'absolute', top: 0, right: 0, background: 'rgba(0,0,0,0.6)', padding: '4px' }}>
-              <button title={t('post.rotateLeft')} onClick={() => setRotation(rotation - 90)}>⟲</button>
-              <button title={t('post.rotateRight')} onClick={() => setRotation(rotation + 90)}>⟳</button>
-              <button title={t('post.zoomIn')} onClick={() => setScale(scale + 0.1)}>+</button>
-              <button title={t('post.zoomOut')} onClick={() => setScale(scale - 0.1)}>-</button>
-            </div>
-          )}
-        </div>
-      )}
-      <h1 style={{ marginBottom: '50px' }}>{post.title}</h1>
-      <p>{post.body}</p>
+    <Box sx={{ p: 4 }}>
+      <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)} sx={{ mb: 2 }}>{t('common.back')}</Button>
+      <Card elevation={2}>
+        {post.image && (
+          <Box
+            onMouseEnter={() => setShowControls(true)}
+            onMouseLeave={() => setShowControls(false)}
+            sx={{ position: 'relative', overflow: 'hidden' }}
+          >
+            <Box
+              component="img"
+              src={post.image}
+              sx={{
+                width: '100%',
+                display: 'block',
+                transform: `rotate(${rotation}deg) scale(${scale})`,
+              }}
+            />
+            {showControls && (
+              <Box sx={{ position: 'absolute', top: 8, right: 8, bgcolor: 'rgba(0,0,0,0.6)', borderRadius: '8px', p: 0.5, display: 'flex' }}>
+                <IconButton size="small" sx={{ color: '#fff' }} title={t('post.rotateLeft')} onClick={() => setRotation(rotation - 90)}>⟲</IconButton>
+                <IconButton size="small" sx={{ color: '#fff' }} title={t('post.rotateRight')} onClick={() => setRotation(rotation + 90)}>⟳</IconButton>
+                <IconButton size="small" sx={{ color: '#fff' }} title={t('post.zoomIn')} onClick={() => setScale(scale + 0.1)}>+</IconButton>
+                <IconButton size="small" sx={{ color: '#fff' }} title={t('post.zoomOut')} onClick={() => setScale(scale - 0.1)}>-</IconButton>
+              </Box>
+            )}
+          </Box>
+        )}
+        <CardContent sx={{ p: 4 }}>
+          <Typography variant="h4" sx={{ mb: 2 }}>{post.title}</Typography>
+          <Typography sx={{ color: 'text.secondary', lineHeight: 1.7, mb: 4 }}>{post.body}</Typography>
 
-      <BarChart width={400} height={300} data={chartData}>
-        <XAxis dataKey="name" />
-        <YAxis />
-        <Tooltip />
-        <Bar dataKey="Stolb" fill="#8884d8" />
-      </BarChart>
-    </div>
+          <BarChart width={520} height={300} data={chartData}>
+            <XAxis dataKey="name" interval={0} tick={{ fill: theme.palette.text.secondary }} stroke={theme.palette.divider} />
+            <YAxis tick={{ fill: theme.palette.text.secondary }} stroke={theme.palette.divider} />
+            <Tooltip
+              cursor={{ fill: theme.palette.action.hover }}
+              contentStyle={{ background: theme.palette.background.paper, border: `1px solid ${theme.palette.divider}`, borderRadius: 8, color: theme.palette.text.primary }}
+              labelStyle={{ color: theme.palette.text.primary }}
+              itemStyle={{ color: theme.palette.primary.main }}
+            />
+            <Bar dataKey="Stolb" fill={theme.palette.primary.main} radius={[6, 6, 0, 0]} />
+          </BarChart>
+        </CardContent>
+      </Card>
+    </Box>
   );
 }
 

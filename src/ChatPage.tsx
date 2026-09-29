@@ -39,12 +39,12 @@ const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
   };
 
   return (
-  <Stack spacing={2} style={{ margin: '20px' }}>
-    <Button sx={{ alignSelf: 'flex-start' }} startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)}>{t('common.back')}</Button>
-    <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center' }}>
+  <Box sx={{ p: 4, height: '100vh', display: 'flex', flexDirection: 'column', boxSizing: 'border-box' }}>
+    <Button sx={{ alignSelf: 'flex-start', mb: 2 }} startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)}>{t('common.back')}</Button>
+    <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
       <Typography variant="h4">{t('chat.title')}</Typography>
-      <IconButton aria-label={t('chat.postsList')} onClick={(e) => setAnchorEl(e.currentTarget)}>
-        <ListIcon sx={{color: "#fff"}} />
+      <IconButton aria-label={t('chat.postsList')} title={t('chat.postsList')} onClick={(e) => setAnchorEl(e.currentTarget)} sx={{ color: 'primary.main' }}>
+        <ListIcon />
       </IconButton>
     </Stack>
 
@@ -54,29 +54,49 @@ const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
       onClose={() => setAnchorEl(null)}
       anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
     >
-      <Box style={{ padding: '10px', maxWidth: '300px' }}>
+      <Box sx={{ p: 2, maxWidth: 320, maxHeight: 400 }}>
         {posts.map((post) => (
-          <Typography key={post.id}>{post.title}</Typography>
+          <Typography key={post.id} variant="body2" sx={{ py: 0.75, borderBottom: 1, borderColor: 'divider' }}>{post.title}</Typography>
         ))}
       </Box>
     </Popover>
 
-      <Paper style={{ padding: '10px', minHeight: '300px' }}>
-        {messages.map((message, i) => (
-          <Typography key={i}>{message}</Typography>
-        ))}
+      <Paper elevation={2} sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 2, display: 'flex', flexDirection: 'column', gap: 1, mb: 2 }}>
+        {messages.map((message, i) => {
+          const isMine = message.startsWith(`${t('chat.me')}: `);
+          return (
+            <Box
+              key={i}
+              sx={{
+                alignSelf: isMine ? 'flex-end' : 'flex-start',
+                maxWidth: '70%',
+                px: 2,
+                py: 1,
+                borderRadius: '16px',
+                borderBottomRightRadius: isMine ? '4px' : '16px',
+                borderBottomLeftRadius: isMine ? '16px' : '4px',
+                bgcolor: isMine ? 'primary.main' : 'action.selected',
+                color: isMine ? 'primary.contrastText' : 'text.primary',
+                wordBreak: 'break-word',
+              }}
+            >
+              <Typography variant="body2">{message}</Typography>
+            </Box>
+          );
+        })}
       </Paper>
 
       <Stack direction="row" spacing={2}>
         <TextField
           fullWidth
+          size="small"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          style={{backgroundColor: 'white', borderRadius: '40px'}}
+          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '999px', bgcolor: 'background.paper' } }}
         />
-        <Button variant="contained" onClick={handleSend} style={{borderRadius: '40px'}}>{t('chat.send')}</Button>
+        <Button variant="contained" onClick={handleSend} sx={{ borderRadius: '999px', px: 3 }}>{t('chat.send')}</Button>
       </Stack>
-    </Stack>
+    </Box>
   );
 }
 

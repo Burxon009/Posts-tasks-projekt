@@ -69,5 +69,13 @@
     "youAreHere": "Siz shu yerdasiz",
     "errorDenied": "Geolokatsiyaga ruxsat berilmadi",
     "errorUnknown": "Joylashuvni aniqlab boʻlmadi"
+  },
+  "app": {
+    "name": "Posts App"
+  },
+  "theme": {
+    "dark": "Tungi mavzu",
+    "light": "Kunduzgi mavzu",
+    "toggle": "Mavzuni almashtirish"
   }
 }

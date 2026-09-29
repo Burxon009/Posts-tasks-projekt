@@ -2,7 +2,7 @@ import { useEffect} from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { usePostsStore } from './postsStore';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@mui/material';
+import { Button, Box, Paper, Typography, Card, CardContent, CardMedia, Chip } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
 import { useTranslation } from 'react-i18next';
 
@@ -57,45 +57,63 @@ function BoardPage() {
   };
   if (!boards) return null;
   return (
-    <div>
-      <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)}>{t('common.back')}</Button>
-      <h2>{t('board.title')}</h2>
+    <Box sx={{ p: 4 }}>
+      <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)} sx={{ mb: 2 }}>{t('common.back')}</Button>
+      <Typography variant="h4" sx={{ mb: 3 }}>{t('board.title')}</Typography>
       <DragDropContext onDragEnd={onDragEnd}>
-        <div style={{ display: 'flex', gap: '20px', padding: '20px' }}>
+        <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start' }}>
           {Object.keys(boards).map((boardKey) => (
             <Droppable droppableId={boardKey} key={boardKey}>
-              {(provided: any) => (
-                <div
+              {(provided: any, snapshot: any) => (
+                <Paper
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  style={{ flex: 1, border: '1px solid gray', padding: '10px', minHeight: '300px' }}
+                  elevation={0}
+                  sx={{
+                    flex: 1,
+                    minWidth: 0,
+                    p: 2,
+                    minHeight: 300,
+                    borderRadius: '16px',
+                    border: 1,
+                    borderColor: snapshot.isDraggingOver ? 'primary.main' : 'divider',
+                    bgcolor: 'background.paper',
+                    transition: 'border-color 0.2s',
+                  }}
                 >
-                  <h3>{t('board.' + boardKey)}</h3>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="h6">{t('board.' + boardKey)}</Typography>
+                    <Chip label={boards[boardKey].length} size="small" color="primary" />
+                  </Box>
                   {boards[boardKey].map((post: any, index: number) => (
                     <Draggable key={post.id} draggableId={String(post.id)} index={index}>
-                      {(provided: any) => (
-                        <div
+                      {(provided: any, snapshot: any) => (
+                        <Card
                           ref={provided.innerRef}
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
-                          style={{ border: '1px solid gray', margin: '10px 0', padding: '10px', ...provided.draggableProps.style }}
+                          style={provided.draggableProps.style}
+                          elevation={snapshot.isDragging ? 8 : 1}
+                          sx={{ mb: 1.5, bgcolor: 'background.default' }}
                         >
                           {post.image && (
-                            <img src={post.image} style={{ width: '100%', height: '100px', objectFit: 'cover', marginBottom: '8px' }} />
+                            <CardMedia component="img" image={post.image} sx={{ height: 100, objectFit: 'cover' }} />
                           )}
-                          {post.title}
-                        </div>
+                          <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
+                            <Typography variant="body2">{post.title}</Typography>
+                          </CardContent>
+                        </Card>
                       )}
                     </Draggable>
                   ))}
                   {provided.placeholder}
-                </div>
+                </Paper>
               )}
             </Droppable>
           ))}
-        </div>
+        </Box>
       </DragDropContext>
-    </div>
+    </Box>
   );
 }
 
