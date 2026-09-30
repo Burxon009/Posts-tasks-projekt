@@ -25,3 +25,4 @@ dist-ssr
 release/
 .oxlintrc.zip
 release.zip
+*.zip

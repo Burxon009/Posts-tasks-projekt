@@ -5,6 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button, Box, Card, CardContent, Typography, IconButton, useTheme } from "@mui/material";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useTranslation } from "react-i18next";
+import DOMPurify from "dompurify";
 
 const isLocalPost = (id: number) => id > 100;
 
@@ -77,7 +78,8 @@ function PostPage() {
     const lengths = allPosts.map((p) => p.title.length + p.body.length);
   const maxLength = Math.max(...lengths);
   const minLength = Math.min(...lengths);
-  const thisLength = post.title.length + post.body.length;
+  const bodyText = new DOMParser().parseFromString(post.body, 'text/html').body.textContent || '';
+  const thisLength = post.title.length + bodyText.length;
 
   const chartData = [
     { name: t('post.thisPost'), Stolb: thisLength },
@@ -116,7 +118,11 @@ function PostPage() {
         )}
         <CardContent sx={{ p: 4 }}>
           <Typography variant="h4" sx={{ mb: 2 }}>{post.title}</Typography>
-          <Typography sx={{ color: 'text.secondary', lineHeight: 1.7, mb: 4 }}>{post.body}</Typography>
+          <Typography
+            component="div"
+            sx={{ color: 'text.secondary', lineHeight: 1.7, mb: 4, '& p': { margin: 0 } }}
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.body) }}
+          />
 
           <BarChart width={520} height={300} data={chartData}>
             <XAxis dataKey="name" interval={0} tick={{ fill: theme.palette.text.secondary }} stroke={theme.palette.divider} />

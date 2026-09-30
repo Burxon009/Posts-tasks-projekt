@@ -8,6 +8,11 @@ import {usePostsStore} from './postsStore'
 import { useTranslation } from 'react-i18next'
 const isLocalPost = (id: number) => id > 100;
 
+const stripHtml = (html: string) => {
+  const doc = new DOMParser().parseFromString(html.replace(/<\/p>/g, '</p> '), 'text/html');
+  return (doc.body.textContent || '').trim();
+};
+
 
 function PostsPage() {
   const [posts, setPosts] = useState<any[]>([]);
@@ -195,7 +200,7 @@ if (isLocalPost(updatedPost.id)) {
               )}
               <CardContent>
                 <Typography variant="h6" sx={{ mb: 1 }}>{post.title}</Typography>
-                <Typography sx={{ color: 'text.secondary' }}>{post.body.slice(0, 100)}...</Typography>
+                <Typography sx={{ color: 'text.secondary' }}>{stripHtml(post.body).slice(0, 100)}...</Typography>
               </CardContent>
               <CardActions sx={{ px: 2, pb: 2 }}>
                 <Button size="small" variant="outlined" onClick={() => navigate(`/posts/${post.id}`)}>{t('posts.open')}</Button>

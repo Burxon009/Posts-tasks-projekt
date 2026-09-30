@@ -1,10 +1,11 @@
 import { useEffect } from 'react';
-import { useForm } from 'react-hook-form';
-import { Dialog, DialogTitle,  DialogContent, DialogActions, TextField, Button, Box } from '@mui/material';
+import { useForm, Controller } from 'react-hook-form';
+import { Dialog, DialogTitle,  DialogContent, DialogActions, TextField, Button, Box, Typography } from '@mui/material';
 import { useTranslation } from 'react-i18next';
+import RichTextEditor from './RichTextEditor';
 
 function AddPostModal({ open, mode = 'create', initialData, loading, onClose, onSubmit }: any) {
-  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm({
+  const { register, handleSubmit, reset, setValue, watch, control, formState: { errors } } = useForm({
     defaultValues: { title: '', body: '', image: null as string | null },
   });
   const image = watch('image');
@@ -43,16 +44,24 @@ function AddPostModal({ open, mode = 'create', initialData, loading, onClose, on
           fullWidth
           margin="normal"
         />
-        <TextField
-          label={t('modal.bodyLabel')}
-          {...register('body', { required: t('modal.bodyRequired') })}
-          error={!!errors.body}
-          helperText={errors.body?.message as string}
-          fullWidth
-          multiline
-          rows={4}
-          margin="normal"
+        <Typography variant="body2" sx={{ color: errors.body ? 'error.main' : 'text.secondary', mt: 1 }}>
+          {t('modal.bodyLabel')}
+        </Typography>
+        <Controller
+          name="body"
+          control={control}
+          rules={{
+            validate: (value: any) => value.replace(/<[^>]+>/g, '').trim() !== '' || t('modal.bodyRequired'),
+          }}
+          render={({ field }) => (
+            <RichTextEditor value={field.value} onChange={field.onChange} />
+          )}
         />
+        {errors.body && (
+          <Typography variant="caption" sx={{ color: 'error.main', display: 'block', mb: 1 }}>
+            {errors.body.message as string}
+          </Typography>
+        )}
         <Button component="label" variant="outlined" sx={{ mt: 1 }}>
           {t('modal.choosePhoto')}
           <input type="file" accept="image/*" hidden onChange={handleImageChange} />

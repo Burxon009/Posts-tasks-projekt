@@ -47,6 +47,10 @@
     "save": "Saqlash",
     "add": "Qo'shish"
   },
+  "editor": {
+    "bold": "Qalin",
+    "italic": "Kursiv"
+  },
   "chat": {
     "title": "Chat",
     "me": "Men",
