@@ -7,7 +7,7 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useTranslation } from "react-i18next";
 import DOMPurify from "dompurify";
 
-const isLocalPost = (id: number) => id > 100;
+const isLocalPost = (id: number) => id >= 1;
 
 function PostPage() {
   const { id } = useParams();
@@ -119,8 +119,30 @@ function PostPage() {
         <CardContent sx={{ p: 4 }}>
           <Typography variant="h4" sx={{ mb: 2 }}>{post.title}</Typography>
           <Typography
-            component="div"
-            sx={{ color: 'text.secondary', lineHeight: 1.7, mb: 4, '& p': { margin: 0 } }}
+sx={{
+  color: 'text.secondary',
+  lineHeight: 1.7,
+  mb: 4,
+  '& p': { margin: 0 },
+
+  '& table': {
+    borderCollapse: 'collapse',
+    width: '100%',
+    marginTop: '16px',
+    marginBottom: '16px',
+  },
+
+  '& th, & td': {
+    border: '1px solid',
+    borderColor: 'divider',
+    padding: '8px',
+    textAlign: 'left',
+  },
+
+  '& th': {
+    fontWeight: 700,
+  },
+}}
             dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(post.body) }}
           />
 

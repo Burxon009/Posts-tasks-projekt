@@ -1,4 +1,4 @@
-import {MapContainer, TileLayer, Marker, Popup, Polygon} from 'react-leaflet'
+import {MapContainer, TileLayer, Marker, Popup, Polygon, AttributionControl} from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { Button, Typography, IconButton, Snackbar, Box, useTheme } from '@mui/material'
@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import { useRef, useState } from 'react'
 import { useThemeStore } from './themeStore'
+import logo from './assets/uzinfocom-logo.8612a388.svg'
 
 const position: any = [41.3420557, 69.3366532]
 
@@ -29,12 +30,12 @@ function LocationPage(){
     const theme = useTheme()
     const mode = useThemeStore((state) => state.mode)
     const primary = theme.palette.primary.main
-
+    
     const icon = L.divIcon({
-        html: `<div style="width:44px;height:44px;border-radius:50%;background:${primary};border:3px solid #fff;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-size:22px;box-shadow:0 2px 8px rgba(0,0,0,0.35)">🏢</div>`,
+        html: `<div style="width:100px;height:44px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;font-size:22px"><img src="${logo}" style="width:100px"></div>`,
         className: '',
         iconSize: [44, 44],
-        iconAnchor: [22, 22],
+        iconAnchor: [58, 18],
         popupAnchor: [0, -22]
     })
 
@@ -75,11 +76,12 @@ function LocationPage(){
                     },
                 }}
             >
-                <MapContainer ref={mapRef} center={position} zoom={17} style={{height: "75vh", width: "100%"}}>
+                <MapContainer ref={mapRef} attributionControl={false} center={position} zoom={17} style={{height: "75vh", width: "100%"}}>
                     <TileLayer
                         url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
                         attribution='&copy; OpenStreetMap'
                     />
+                    <AttributionControl prefix={false}/>
                     <Marker position={position} icon={icon}>
                         <Popup>
                             <b>Uzinfocom</b><br />
@@ -103,6 +105,7 @@ function LocationPage(){
                             <Popup>{t('location.youAreHere')}</Popup>
                         </Marker>
                     )}
+                    
                 </MapContainer>
                 <IconButton
                     aria-label={t('location.myLocation')}
@@ -131,6 +134,7 @@ function LocationPage(){
                 onClose={() => setError('')}
                 message={error}
             />
+            
         </Box>
     )
 }
