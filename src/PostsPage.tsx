@@ -7,7 +7,13 @@ import AddPostModal from './AddPostModal'
 import {usePostsStore} from './postsStore'
 import { useTranslation } from 'react-i18next'
 import DOMPurify from 'dompurify'
-const isLocalPost = (id: number) => id >= 1;
+const isLocalPost = (id: number) => id >= 100;
+
+const uniquePosts = (posts: any[]) => {
+  return Array.from(
+    new Map(posts.map((post) => [post.id, post])).values()
+  );
+};
 
 function PostsPage() {
   const [posts, setPosts] = useState<any[]>([]);
@@ -35,8 +41,11 @@ function PostsPage() {
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
       if (data.type === 'post') {
-        setPosts((old) => [data.post, ...old]);
         setStorePosts([data.post, ...usePostsStore.getState().posts]);
+        setPosts((old) => [
+  data.post,
+  ...old.filter((post) => post.id !== data.post.id),
+]);
         setSnackbarText(i18n.t('posts.newPost', { title: data.post.title }));
         setSnackbarOpen(true);
       }
@@ -57,7 +66,7 @@ useEffect(() => {
       const localPosts = usePostsStore.getState().posts.filter((p) => isLocalPost(p.id));
       const deletedIds = usePostsStore.getState().deletedIds;
       const merged = [...localPosts, ...data].filter((p) => !deletedIds.includes(p.id));
-      setPosts(merged);
+      setPosts(uniquePosts(merged));
       setStorePosts(merged);
       setIsLoading(false);
     })

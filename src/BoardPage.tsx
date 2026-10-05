@@ -60,8 +60,12 @@ function BoardPage() {
     <Box sx={{ p: 4 }}>
       <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(-1)} sx={{ mb: 2 }}>{t('common.back')}</Button>
       <Typography variant="h4" sx={{ mb: 3 }}>{t('board.title')}</Typography>
-      <DragDropContext onDragEnd={onDragEnd}>
-        <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start' }}>
+<DragDropContext
+  onDragEnd={onDragEnd}
+  autoScrollerOptions={{
+    disabled: false,
+  }}
+>        <Box sx={{ display: 'flex', gap: 3, alignItems: 'flex-start' }}>
           {Object.keys(boards).map((boardKey) => (
             <Droppable droppableId={boardKey} key={boardKey}>
               {(provided: any, snapshot: any) => (
@@ -117,4 +121,4 @@ function BoardPage() {
   );
 }
 
-export default BoardPage;
+export default BoardPage;
